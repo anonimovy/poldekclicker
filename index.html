@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poldek Clicker</title>
+    <style>
+        :root {
+            --primary-color: #6a1b9a;
+            --secondary-color: #9c4dcc;
+            --accent-color: #ffab00;
+            --text-color: #f5f5f5;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --achievement-color: #4caf50;
+            --inventory-color: #2196f3;
+            --cursor-color: #ffab00;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: var(--cursor-default);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 171, 0, 0.3);
+        }
+        
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(106, 27, 154, 0.5);
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
+        
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        .counter-container {
+            background-color: var(--card-color);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .counter-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(106, 27, 154, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+        
+        .counter {
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 15px rgba(255, 171, 0, 0.5);
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .click-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.4);
+        }
+        
+        .click-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(106, 27, 154, 0.6);
+        }
+        
+        .click-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .click-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+            z-index: -1;
+        }
+        
+        .click-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .control-group h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .upgrades {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .upgrade {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .upgrade:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .upgrade h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+        
+        .upgrade p {
+            margin-bottom: 15px;
+        }
+        
+        .upgrade-btn {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        .upgrade-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .click-spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.8;
+            animation: sparkAnim 1s forwards;
+        }
+        
+        @keyframes sparkAnim {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .click-text {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: textAnim 1.5s forwards;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes textAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -150%) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+
+        .achievements-section {
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .achievements-container {
+            background-color: var(--card-color);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .achievements-title {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .achievement {
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid var(--achievement-color);
+            transition: all 0.3s;
+        }
+
+        .achievement.locked {
+            opacity: 0.6;
+            border-left: 4px solid #555;
+        }
+
+        .achievement-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--achievement-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .achievement.locked .achievement-icon {
+            background-color: #555;
+        }
+
+        .achievement-info {
+            flex-grow: 1;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        .achievement.locked .achievement-name {
+            color: #888;
+        }
+
+        .achievement-desc {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .achievement.locked .achievement-desc {
+            color: #666;
+        }
+
+        .achievement-progress {
+            height: 5px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .achievement-progress-bar {
+            height: 100%;
+            background-color: var(--achievement-color);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .achievement-reward {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-top: 5px;
+        }
+
+        .achievement-unlocked {
+            animation: achievementUnlock 0.5s ease-out;
+        }
+
+        @keyframes achievementUnlock {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 5px rgba(76, 175, 80, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--achievement-color);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(200%);
+            transition: transform 0.5s;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .achievement-notification.show {
+            transform: translateX(0);
+        }
+
+        .achievement-notification-icon {
+            font-size: 1.5rem;
+        }
+
+        .achievement-notification-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+        }
+
+        .achievement-notification-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+
+        .inventory-section {
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .inventory-container {
+            background-color: var(--card-color);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .inventory-title {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .inventory-item {
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--inventory-color);
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .inventory-item-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--inventory-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .inventory-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        .inventory-item-desc {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .inventory-item-count {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+        }
+
+        .use-btn {
+            background: linear-gradient(to right, var(--inventory-color), #64b5f6);
+            width: 100%;
+            padding: 8px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .use-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+
+        .booster-active {
+            animation: boosterPulse 1s infinite;
+        }
+
+        @keyframes boosterPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+            }
+        }
+
+
+        .cursor-preview {
+            width: 32px;
+            height: 32px;
+            margin: 10px auto;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .cursor-item.selected {
+            box-shadow: 0 0 0 3px var(--accent-color);
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .counter {
+                font-size: 3rem;
+            }
+            
+            .click-btn {
+                padding: 12px 30px;
+                font-size: 1.2rem;
+            }
+
+            .achievements-grid,
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Poldek Clicker</h1>
+            <img src="https://i.imgur.com/JQ9pRoN.jpg" alt="Avatar Poldka" class="avatar">
+        </header>
+        
+        <div class="counter-container">
+            <h2>Licznik Tapów</h2>
+            <div class="game-stats">
+                <div class="stat">
+                    <span>Czas gry:</span>
+                    <span class="stat-value" id="play-time">00:00:00</span>
+                </div>
+                <div class="stat">
+                    <span>Kliknięcia:</span>
+                    <span class="stat-value" id="total-clicks">0</span>
+                </div>
+                <div class="stat">
+                    <span>Osiągnięcia:</span>
+                    <span class="stat-value" id="achievements-count">0/30</span>
+                </div>
+            </div>
+            <div class="counter" id="counter">0</div>
+            <button class="click-btn" id="click-btn">KLIKNIJ!</button>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>Ustawienia Kliknięć</h3>
+                <div class="slider-container">
+                    <label for="click-speed">Szybkość klikania: <span id="click-speed-value">1</span>x</label>
+                    <input type="range" id="click-speed" min="1" max="10" value="1">
+                </div>
+                <button id="reset-btn">Resetuj Licznik</button>
+                <button id="save-btn">Zapisz grę</button>
+                <button id="load-btn">Wczytaj grę</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Ustawienia Myszki</h3>
+                <div class="slider-container">
+                    <label for="mouse-speed">Czułość myszki: <span id="mouse-speed-value">50</span>%</label>
+                    <input type="range" id="mouse-speed" min="10" max="200" value="50">
+                </div>
+            </div>
+        </div>
+        
+        <h2 style="text-align: center; color: var(--accent-color);">Ulepszenia</h2>
+        <div class="upgrades" id="upgrades-container">
+            <!-- Ulepszenia będą dodawane dynamicznie przez JavaScript -->
+        </div>
+
+
+        <div class="inventory-section">
+            <div class="inventory-container">
+                <h3 class="inventory-title">Ekwipunek</h3>
+                <div class="inventory-grid" id="inventory-grid">
+                    <!-- Przedmioty będą dodawane dynamicznie przez JavaScript -->
+                </div>
+            </div>
+        </div>
+
+
+        <div class="inventory-section">
+            <div class="inventory-container">
+                <h3 class="inventory-title">Kursory</h3>
+                <div class="inventory-grid" id="cursors-grid">
+                    <!-- Kursory będą dodawane dynamicznie przez JavaScript -->
+                </div>
+            </div>
+        </div>
+
+
+        <div class="achievements-section">
+            <div class="achievements-container">
+                <h3 class="achievements-title">Osiągnięcia</h3>
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- Osiągnięcia będą dodawane dynamicznie przez JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="achievement-notification" id="achievement-notification">
+        <div class="achievement-notification-icon">🏆</div>
+        <div class="achievement-notification-text">
+            <h4 id="notification-title">Osiągnięcie odblokowane!</h4>
+            <p id="notification-desc">Opis osiągnięcia</p>
+        </div>
+    </div>
+    
+    <script>
+        // Zmienne
+        let gameState = {
+            count: 0,
+            clickValue: 1,
+            clickSpeed: 1,
+            upgrades: {
+                doubleClick: false,
+                autoClicker: false,
+                megaClicker: false,
+                criticalClick: false,
+                goldenClick: false,
+                clickCombo: false,
+                rainbowClick: false,
+                ultimateOrgasm: false,
+                timeWarp: false,
+                clickPortal: false,
+                quantumClick: false,
+                darkEnergy: false,
+                cosmicBoost: false,
+                infinityClick: false,
+                godMode: false,
+                luckyStar: false,
+                rainbowTrail: false,
+                goldenShower: false,
+                orgasmicStorm: false,
+                divineTouch: false
+            },
+            comboCount: 0,
+            comboTimeout: null,
+            autoClickerInterval: null,
+            megaClickerInterval: null,
+            goldenClickInterval: null,
+            ultimateOrgasmInterval: null,
+            timeWarpInterval: null,
+            clickPortalInterval: null,
+            quantumClickInterval: null,
+            totalClicks: 0,
+            totalAutoClicks: 0,
+            playTime: 0,
+            playTimeInterval: null,
+            activeBoosters: [],
+            unlockedCursors: ['default'],
+            currentCursor: 'default',
+            inventory: {},
+            unlockedAchievements: []
+        };
+
+        // DOM
+        const counterElement = document.getElementById('counter');
+        const clickBtn = document.getElementById('click-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const clickSpeedSlider = document.getElementById('click-speed');
+        const clickSpeedValue = document.getElementById('click-speed-value');
+        const mouseSpeedSlider = document.getElementById('mouse-speed');
+        const mouseSpeedValue = document.getElementById('mouse-speed-value');
+        const upgradesContainer = document.getElementById('upgrades-container');
+        const achievementsGrid = document.getElementById('achievements-grid');
+        const inventoryGrid = document.getElementById('inventory-grid');
+        const cursorsGrid = document.getElementById('cursors-grid');
+        const achievementNotification = document.getElementById('achievement-notification');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationDesc = document.getElementById('notification-desc');
+        const playTimeElement = document.getElementById('play-time');
+        const totalClicksElement = document.getElementById('total-clicks');
+        const achievementsCountElement = document.getElementById('achievements-count');
+        
+        const particles = document.getElementById('particles');
+        
+
+        const upgrades = [
+            {
+                id: 'double-click',
+                name: 'Podwójne Kliknięcie',
+                description: 'Każde kliknięcie liczy się podwójnie!',
+                cost: 100,
+                active: false
+            },
+            {
+                id: 'auto-click',
+                name: 'Automatyczny Clicker',
+                description: 'Automatycznie klikaj 1x na sekundę!',
+                cost: 500,
+                active: false
+            },
+            {
+                id: 'mega-click',
+                name: 'Mega Kliknięcie',
+                description: 'Co 10 sekund dostajesz mega kliknięcie!',
+                cost: 1000,
+                active: false
+            },
+            {
+                id: 'critical-click',
+                name: 'Krytyczne Kliknięcie',
+                description: '15% szans na potrójne kliknięcie!',
+                cost: 1500,
+                active: false
+            },
+            {
+                id: 'golden-click',
+                name: 'Golden Click',
+                description: 'Co minutę dostajesz złote kliknięcie (x5 wartości)!',
+                cost: 2000,
+                active: false
+            },
+            {
+                id: 'click-combo',
+                name: 'Click Combo',
+                description: 'Każde kolejne kliknięcie w ciągu 2 sekund daje bonus!',
+                cost: 2500,
+                active: false
+            },
+            {
+                id: 'rainbow-click',
+                name: 'Rainbow Click',
+                description: 'Twoje kliknięcia generują tęczowe efekty!',
+                cost: 3000,
+                active: false
+            },
+            {
+                id: 'ultimate-orgasm',
+                name: 'Ultimate Orgazm',
+                description: 'Co 30 sekund dostajesz ogromną dawkę tapów!',
+                cost: 5000,
+                active: false
+            },
+            {
+                id: 'time-warp',
+                name: 'Time Warp',
+                description: 'Przyspiesza wszystkie interwały o 50%!',
+                cost: 7500,
+                active: false
+            },
+            {
+                id: 'click-portal',
+                name: 'Click Portal',
+                description: 'Co 15 sekund otwiera portal dający losową ilość tapów!',
+                cost: 10000,
+                active: false
+            },
+            {
+                id: 'quantum-click',
+                name: 'Quantum Click',
+                description: 'Każde kliknięcie ma 5% szansy na kwantowy efekt (x10)!',
+                cost: 15000,
+                active: false
+            },
+            {
+                id: 'dark-energy',
+                name: 'Dark Energy',
+                description: 'Dodaje 1% wartości kliknięcia za każde tapnięcie w banku!',
+                cost: 20000,
+                active: false
+            },
+            {
+                id: 'cosmic-boost',
+                name: 'Cosmic Boost',
+                description: 'Podwaja wszystkie efekty ulepszeń!',
+                cost: 25000,
+                active: false
+            },
+            {
+                id: 'infinity-click',
+                name: 'Infinity Click',
+                description: 'Dodaje 0.1% wartości kliknięcia za każde osiągnięcie!',
+                cost: 30000,
+                active: false
+            },
+            {
+                id: 'god-mode',
+                name: 'God Mode',
+                description: 'Wszystkie kliknięcia dają 10x więcej!',
+                cost: 50000,
+                active: false
+            },
+            {
+                id: 'lucky-star',
+                name: 'Lucky Star',
+                description: 'Zwiększa szansę na krytyka do 25%!',
+                cost: 75000,
+                active: false
+            },
+            {
+                id: 'rainbow-trail',
+                name: 'Rainbow Trail',
+                description: 'Tworzy tęczowe ślady za kursorem!',
+                cost: 100000,
+                active: false
+            },
+            {
+                id: 'golden-shower',
+                name: 'Golden Shower',
+                description: 'Co 5 sekund spada złoty deszcz tapów!',
+                cost: 150000,
+                active: false
+            },
+            {
+                id: 'orgasmic-storm',
+                name: 'Orgasmic Storm',
+                description: 'Tworzy losowe burze tapów na ekranie!',
+                cost: 200000,
+                active: false
+            },
+            {
+                id: 'divine-touch',
+                name: 'Divine Touch',
+                description: 'Każde kliknięcie ma 1% szansy na boski efekt (x100)!',
+                cost: 500000,
+                active: false
+            }
+        ];
+
+
+        const achievements = [
+            {
+                id: 'first-click',
+                name: 'Pierwszy raz',
+                description: 'Wykonaj pierwsze kliknięcie',
+                goal: 1,
+                current: 0,
+                reward: '+10 tapów',
+                unlocked: false,
+                icon: '👆'
+            },
+            {
+                id: 'clicker-novice',
+                name: 'Nowicjusz Clickera',
+                description: 'Zdobyj 100 tapów',
+                goal: 100,
+                current: 0,
+                reward: '+50 tapów',
+                unlocked: false,
+                icon: '🖱️'
+            },
+            {
+                id: 'clicker-pro',
+                name: 'Profesjonalny Clicker',
+                description: 'Zdobyj 1000 tapów',
+                goal: 1000,
+                current: 0,
+                reward: '+200 tapów',
+                unlocked: false,
+                icon: '💪'
+            },
+            {
+                id: 'clicker-master',
+                name: 'Mistrz Clickera',
+                description: 'Zdobyj 10000 tapów',
+                goal: 10000,
+                current: 0,
+                reward: '+1000 tapów',
+                unlocked: false,
+                icon: '👑'
+            },
+            {
+                id: 'clicker-god',
+                name: 'Bóg Clickera',
+                description: 'Zdobyj 100000 tapów',
+                goal: 100000,
+                current: 0,
+                reward: '+5000 tapów',
+                unlocked: false,
+                icon: '🌟'
+            },
+            {
+                id: 'clicker-legend',
+                name: 'Legenda Clickera',
+                description: 'Zdobyj 1000000 tapów',
+                goal: 1000000,
+                current: 0,
+                reward: '+50000 tapów',
+                unlocked: false,
+                icon: '🔥'
+            },
+            {
+                id: 'fast-clicker',
+                name: 'Szybki palec',
+                description: 'Wykonaj 50 kliknięć',
+                goal: 50,
+                current: 0,
+                reward: '+100 tapów',
+                unlocked: false,
+                icon: '⚡'
+            },
+            {
+                id: 'addicted',
+                name: 'Uzależniony',
+                description: 'Wykonaj 500 kliknięć',
+                goal: 500,
+                current: 0,
+                reward: '+500 tapów',
+                unlocked: false,
+                icon: '😵'
+            },
+            {
+                id: 'click-maniac',
+                name: 'Maniak Klikania',
+                description: 'Wykonaj 5000 kliknięć',
+                goal: 5000,
+                current: 0,
+                reward: '+2000 taoów',
+                unlocked: false,
+                icon: '🤪'
+            },
+            {
+                id: 'click-legend',
+                name: 'Legenda Klikania',
+                description: 'Wykonaj 10000 kliknięć',
+                goal: 10000,
+                current: 0,
+                reward: '+5000 tapów',
+                unlocked: false,
+                icon: '🏆'
+            },
+            {
+                id: 'click-addict',
+                name: 'Nałogowy Clicker',
+                description: 'Wykonaj 50000 kliknięć',
+                goal: 50000,
+                current: 0,
+                reward: '+10000 tapów',
+                unlocked: false,
+                icon: '🧠'
+            },
+            {
+                id: 'upgrade-king',
+                name: 'Król Ulepszeń',
+                description: 'Kup 10 ulepszeń',
+                goal: 10,
+                current: 0,
+                reward: '+2000 tapów',
+                unlocked: false,
+                icon: '🛠️'
+            },
+            {
+                id: 'upgrade-god',
+                name: 'Bóg Ulepszeń',
+                description: 'Kup wszystkie ulepszenia',
+                goal: 20,
+                current: 0,
+                reward: '+20000 tapów',
+                unlocked: false,
+                icon: '⚡'
+            },
+            {
+                id: 'auto-clicker',
+                name: 'Automatyk',
+                description: 'Zdobądź 1000 tapów z automatycznego klikacza',
+                goal: 1000,
+                current: 0,
+                reward: 'Automatyczny clicker x2',
+                unlocked: false,
+                icon: '🤖'
+            },
+            {
+                id: 'auto-master',
+                name: 'Mistrz Automatyki',
+                description: 'Zdobądź 100000 tapów z automatycznego klikacza',
+                goal: 100000,
+                current: 0,
+                reward: 'Automatyczny clicker x5',
+                unlocked: false,
+                icon: '👾'
+            },
+            {
+                id: 'combo-master',
+                name: 'Mistrz Combo',
+                description: 'Wykonaj combo 10 kliknięć',
+                goal: 10,
+                current: 0,
+                reward: '+300 tapów',
+                unlocked: false,
+                icon: '🎯'
+            },
+            {
+                id: 'combo-god',
+                name: 'Bóg Combo',
+                description: 'Wykonaj combo 50 kliknięć',
+                goal: 50,
+                current: 0,
+                reward: '+5000 tapów',
+                unlocked: false,
+                icon: '🎮'
+            },
+            {
+                id: 'critical-hit',
+                name: 'Krytyczne trafienie',
+                description: 'Wykonaj 10 krytycznych kliknięć',
+                goal: 10,
+                current: 0,
+                reward: '+5% szansy na krytyka',
+                unlocked: false,
+                icon: '💥'
+            },
+            {
+                id: 'critical-master',
+                name: 'Mistrz Krytyków',
+                description: 'Wykonaj 1000 krytycznych kliknięć',
+                goal: 1000,
+                current: 0,
+                reward: '+10% szansy na krytyka',
+                unlocked: false,
+                icon: '🎯'
+            },
+            {
+                id: 'time-spent-1',
+                name: 'Pierwsza godzina',
+                description: 'Spędź 1 godzinę w grze',
+                goal: 3600,
+                current: 0,
+                reward: '+1000 tapów',
+                unlocked: false,
+                icon: '⏱️'
+            },
+            {
+                id: 'time-spent-5',
+                name: 'Pięć godzin',
+                description: 'Spędź 5 godzin w grze',
+                goal: 18000,
+                current: 0,
+                reward: '+5000 tapów',
+                unlocked: false,
+                icon: '🕔'
+            },
+            {
+                id: 'time-spent-10',
+                name: 'Dziesięć godzin',
+                description: 'Spędź 10 godzin w grze',
+                goal: 36000,
+                current: 0,
+                reward: '+10000 tapów',
+                unlocked: false,
+                icon: '🕙'
+            },
+            {
+                id: 'time-spent-24',
+                name: 'Cały dzień',
+                description: 'Spędź 24 godziny w grze',
+                goal: 86400,
+                current: 0,
+                reward: '+50000 tapów',
+                unlocked: false,
+                icon: '🌞'
+            },
+            {
+                id: 'booster-user',
+                name: 'Użytkownik Boosterów',
+                description: 'Użyj 10 boosterów',
+                goal: 10,
+                current: 0,
+                reward: '+5 boosterów x2',
+                unlocked: false,
+                icon: '🚀'
+            },
+            {
+                id: 'booster-master',
+                name: 'Mistrz Boosterów',
+                description: 'Użyj 100 boosterów',
+                goal: 100,
+                current: 0,
+                reward: '+10 boosterów x3',
+                unlocked: false,
+                icon: '🎯'
+            },
+            {
+                id: 'inventory-collector',
+                name: 'Kolekcjoner',
+                description: 'Zdobądź 10 przedmiotów w ekwipunku',
+                goal: 10,
+                current: 0,
+                reward: '+5 losowych przedmiotów',
+                unlocked: false,
+                icon: '🎁'
+            },
+            {
+                id: 'inventory-hoarder',
+                name: 'Magazynier',
+                description: 'Zdobądź 100 przedmiotów w ekwipunku',
+                goal: 100,
+                current: 0,
+                reward: '+20 losowych przedmiotów',
+                unlocked: false,
+                icon: '📦'
+            },
+            {
+                id: 'cursor-collector',
+                name: 'Zbieracz Kursorów',
+                description: 'Odblokuj 5 customowych kursorów',
+                goal: 5,
+                current: 0,
+                reward: 'Ekskluzywny kursor',
+                unlocked: false,
+                icon: '🖱️'
+            },
+            {
+                id: 'perfect-game',
+                name: 'Perfekcyjna Gra',
+                description: 'Odblokuj wszystkie osiągnięcia',
+                goal: 30,
+                current: 0,
+                reward: 'Nieskończone tapy!',
+                unlocked: false,
+                icon: '🏅'
+            }
+        ];
+
+
+        const inventoryItems = [
+            {
+                id: 'booster-2x',
+                name: 'Booster x2',
+                description: 'Podwaja wartość kliknięć na 30 sekund',
+                icon: '🚀',
+                count: 0,
+                duration: 30,
+                multiplier: 2
+            },
+            {
+                id: 'booster-3x',
+                name: 'Booster x3',
+                description: 'Potraja wartość kliknięć na 20 sekund',
+                icon: '💫',
+                count: 0,
+                duration: 20,
+                multiplier: 3
+            },
+            {
+                id: 'booster-5x',
+                name: 'Booster x5',
+                description: 'Pięciokrotnie zwiększa wartość kliknięć na 15 sekund',
+                icon: '✨',
+                count: 0,
+                duration: 15,
+                multiplier: 5
+            },
+            {
+                id: 'booster-10x',
+                name: 'Booster x10',
+                description: 'Dziesięciokrotnie zwiększa wartość kliknięć na 10 sekund',
+                icon: '🌈',
+                count: 0,
+                duration: 10,
+                multiplier: 10
+            },
+            {
+                id: 'time-booster',
+                name: 'Przyspieszacz czasu',
+                description: 'Przyspiesza wszystkie interwały o 50% na 1 minutę',
+                icon: '⏩',
+                count: 0,
+                duration: 60,
+                effect: 'speed'
+            },
+            {
+                id: 'lucky-charm',
+                name: 'Szczęśliwy Talizman',
+                description: 'Zwiększa szansę na krytyczne trafienie do 30% na 45 sekund',
+                icon: '🍀',
+                count: 0,
+                duration: 45,
+                effect: 'critical'
+            },
+            {
+                id: 'combo-extender',
+                name: 'Rozszerzacz Combo',
+                description: 'Wydłuża czas combo do 5 sekund na 2 minuty',
+                icon: '⏱️',
+                count: 0,
+                duration: 120,
+                effect: 'combo'
+            },
+            {
+                id: 'golden-rain',
+                name: 'Złoty Deszcz',
+                description: 'Aktywuje efekt złotego deszczu na 30 sekund',
+                icon: '🌧️',
+                count: 0,
+                duration: 30,
+                effect: 'golden'
+            },
+            {
+                id: 'quantum-boost',
+                name: 'Kwantowy Zastrzyk',
+                description: 'Podwaja szansę na efekty kwantowe na 1 minutę',
+                icon: '⚛️',
+                count: 0,
+                duration: 60,
+                effect: 'quantum'
+            },
+            {
+                id: 'infinity-stone',
+                name: 'Kamień Nieskończoności',
+                description: 'Aktywuje wszystkie efekty jednocześnie na 15 sekund',
+                icon: '💎',
+                count: 0,
+                duration: 15,
+                effect: 'all'
+            }
+        ];
+
+
+        const cursors = [
+            {
+                id: 'default',
+                name: 'Domyślny',
+                description: 'Standardowy kursor',
+                icon: '🖱️',
+                unlocked: true,
+                css: 'default'
+            },
+            {
+                id: 'gold',
+                name: 'Złoty',
+                description: 'Lśniący złoty kursor',
+                icon: '🌟',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/games/gam-13/gam1282.cur"), auto'
+            },
+            {
+                id: 'rainbow',
+                name: 'Tęczowy',
+                description: 'Kolorowy tęczowy kursor',
+                icon: '🌈',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-5/cur427.cur"), auto'
+            },
+            {
+                id: 'magic',
+                name: 'Magiczny',
+                description: 'Kursor z magiczną różdżką',
+                icon: '✨',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-11/cur1054.cur"), auto'
+            },
+            {
+                id: 'sword',
+                name: 'Miecz',
+                description: 'Ostry jak miecz',
+                icon: '⚔️',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-9/cur889.cur"), auto'
+            },
+            {
+                id: 'alien',
+                name: 'Kosmiczny',
+                description: 'Kursor z innej galaktyki',
+                icon: '👽',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-3/cur233.cur"), auto'
+            },
+            {
+                id: 'heart',
+                name: 'Serce',
+                description: 'Kursor w kształcie serca',
+                icon: '❤️',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-2/cur116.cur"), auto'
+            },
+            {
+                id: 'dragon',
+                name: 'Smok',
+                description: 'Groźny smok jako kursor',
+                icon: '🐉',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-11/cur1106.cur"), auto'
+            },
+            {
+                id: 'poldke',
+                name: 'Poldke Special',
+                description: 'Ekskluzywny kursor Poldka',
+                icon: '👑',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-11/cur1106.cur"), auto'
+            },
+            {
+                id: 'infinity',
+                name: 'Nieskończoność',
+                description: 'Kursor symbolizujący nieskończoność',
+                icon: '♾️',
+                unlocked: false,
+                css: 'url("https://cur.cursors-4u.net/cursors/cur-3/cur277.cur"), auto'
+            }
+        ];
+
+
+        function initUpgrades() {
+            upgradesContainer.innerHTML = '';
+            upgrades.forEach(upgrade => {
+                const upgradeElement = document.createElement('div');
+                upgradeElement.className = 'upgrade';
+                upgradeElement.innerHTML = `
+                    <h3>${upgrade.name}</h3>
+                    <p>${upgrade.description}</p>
+                    <p><strong>Koszt: ${upgrade.cost} tapów</strong></p>
+                    <button class="upgrade-btn" id="${upgrade.id}" ${gameState.count < upgrade.cost || gameState.upgrades[upgrade.id] ? 'disabled' : ''}>
+                        ${gameState.upgrades[upgrade.id] ? 'Aktywowane' : 'Kup'}
+                    </button>
+                `;
+                upgradesContainer.appendChild(upgradeElement);
+                
+
+                document.getElementById(upgrade.id).addEventListener('click', () => {
+                    buyUpgrade(upgrade.id);
+                });
+            });
+        }
+
+
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            if (!upgrade || gameState.count < upgrade.cost || gameState.upgrades[upgradeId]) return;
+            
+            gameState.count -= upgrade.cost;
+            gameState.upgrades[upgradeId] = true;
+            updateCounter();
+            
+
+            activateUpgrade(upgradeId);
+            
+
+            const button = document.getElementById(upgradeId);
+            button.disabled = true;
+            button.textContent = 'Aktywowane';
+            
+
+            checkUpgradeAchievements();
+            
+
+            const upgradeEffect = document.createElement('div');
+            upgradeEffect.textContent = `${upgrade.name} AKTYWOWANE!`;
+            upgradeEffect.style.position = 'fixed';
+            upgradeEffect.style.color = '#6a1b9a';
+            upgradeEffect.style.fontSize = '1.5rem';
+            upgradeEffect.style.fontWeight = 'bold';
+            upgradeEffect.style.left = '50%';
+            upgradeEffect.style.top = '20%';
+            upgradeEffect.style.transform = 'translate(-50%, -50%)';
+            upgradeEffect.style.zIndex = '1000';
+            upgradeEffect.style.textShadow = '0 0 10px #9c4dcc';
+            upgradeEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(upgradeEffect);
+            
+            setTimeout(() => {
+                upgradeEffect.remove();
+            }, 2000);
+        }
+
+
+        function activateUpgrade(upgradeId) {
+            switch (upgradeId) {
+                case 'auto-click':
+                    clearInterval(gameState.autoClickerInterval);
+                    gameState.autoClickerInterval = setInterval(() => {
+                        autoClick();
+                    }, 1000);
+                    break;
+                case 'mega-click':
+                    clearInterval(gameState.megaClickerInterval);
+                    gameState.megaClickerInterval = setInterval(() => {
+                        const megaValue = 10 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                        const boostedValue = megaValue * getActiveMultiplier();
+                        gameState.count += boostedValue;
+                        updateCounter();
+                        
+                        const megaEffect = document.createElement('div');
+                        megaEffect.textContent = `MEGA +${boostedValue}`;
+                        megaEffect.style.position = 'fixed';
+                        megaEffect.style.color = '#ff00ff';
+                        megaEffect.style.fontSize = '2rem';
+                        megaEffect.style.fontWeight = 'bold';
+                        megaEffect.style.left = '50%';
+                        megaEffect.style.top = '40%';
+                        megaEffect.style.transform = 'translate(-50%, -50%)';
+                        megaEffect.style.zIndex = '1000';
+                        megaEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                        document.body.appendChild(megaEffect);
+                        
+                        setTimeout(() => {
+                            megaEffect.remove();
+                        }, 2000);
+                    }, 10000);
+                    break;
+                case 'golden-click':
+                    clearInterval(gameState.goldenClickInterval);
+                    gameState.goldenClickInterval = setInterval(() => {
+                        const goldenValue = 5 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                        const boostedValue = goldenValue * getActiveMultiplier();
+                        gameState.count += boostedValue;
+                        updateCounter();
+                        
+                        const goldenEffect = document.createElement('div');
+                        goldenEffect.textContent = `GOLDEN +${boostedValue}`;
+                        goldenEffect.style.position = 'fixed';
+                        goldenEffect.style.color = 'gold';
+                        goldenEffect.style.fontSize = '2rem';
+                        goldenEffect.style.fontWeight = 'bold';
+                        goldenEffect.style.left = '50%';
+                        goldenEffect.style.top = '30%';
+                        goldenEffect.style.transform = 'translate(-50%, -50%)';
+                        goldenEffect.style.zIndex = '1000';
+                        goldenEffect.style.textShadow = '0 0 10px gold';
+                        goldenEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                        document.body.appendChild(goldenEffect);
+                        
+                        setTimeout(() => {
+                            goldenEffect.remove();
+                        }, 2000);
+                    }, 60000);
+                    break;
+                case 'ultimate-orgasm':
+                    clearInterval(gameState.ultimateOrgasmInterval);
+                    gameState.ultimateOrgasmInterval = setInterval(() => {
+                        const ultimateValue = 50 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                        const boostedValue = ultimateValue * getActiveMultiplier();
+                        gameState.count += boostedValue;
+                        updateCounter();
+                        
+                        const ultimateEffect = document.createElement('div');
+                        ultimateEffect.textContent = `ULTIMATE +${boostedValue}`;
+                        ultimateEffect.style.position = 'fixed';
+                        ultimateEffect.style.color = '#ff00ff';
+                        ultimateEffect.style.fontSize = '3rem';
+                        ultimateEffect.style.fontWeight = 'bold';
+                        ultimateEffect.style.left = '50%';
+                        ultimateEffect.style.top = '20%';
+                        ultimateEffect.style.transform = 'translate(-50%, -50%)';
+                        ultimateEffect.style.zIndex = '1000';
+                        ultimateEffect.style.textShadow = '0 0 20px #ff00ff';
+                        ultimateEffect.style.animation = 'megaFloat 3s ease-out forwards';
+                        document.body.appendChild(ultimateEffect);
+                        
+                        for (let i = 0; i < 100; i++) {
+                            setTimeout(() => {
+                                const particle = document.createElement('div');
+                                particle.style.position = 'fixed';
+                                particle.style.width = '10px';
+                                particle.style.height = '10px';
+                                particle.style.borderRadius = '50%';
+                                particle.style.left = Math.random() * 100 + 'vw';
+                                particle.style.top = Math.random() * 100 + 'vh';
+                                particle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                                particle.style.animation = 'rainbowParticle 2s ease-out forwards';
+                                document.body.appendChild(particle);
+                                
+                                setTimeout(() => {
+                                    particle.remove();
+                                }, 2000);
+                            }, i * 20);
+                        }
+                        
+                        setTimeout(() => {
+                            ultimateEffect.remove();
+                        }, 3000);
+                    }, 30000);
+                    break;
+                case 'time-warp':
+                    clearInterval(gameState.timeWarpInterval);
+                    // Przyspieszenie wszystkich interwałów o 50%
+                    if (gameState.upgrades.autoClicker) {
+                        clearInterval(gameState.autoClickerInterval);
+                        gameState.autoClickerInterval = setInterval(() => {
+                            autoClick();
+                        }, 500);
+                    }
+                    if (gameState.upgrades.megaClicker) {
+                        clearInterval(gameState.megaClickerInterval);
+                        gameState.megaClickerInterval = setInterval(() => {
+                            const megaValue = 10 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                            const boostedValue = megaValue * getActiveMultiplier();
+                            gameState.count += boostedValue;
+                            updateCounter();
+                            
+                            const megaEffect = document.createElement('div');
+                            megaEffect.textContent = `MEGA +${boostedValue}`;
+                            megaEffect.style.position = 'fixed';
+                            megaEffect.style.color = '#ff00ff';
+                            megaEffect.style.fontSize = '2rem';
+                            megaEffect.style.fontWeight = 'bold';
+                            megaEffect.style.left = '50%';
+                            megaEffect.style.top = '40%';
+                            megaEffect.style.transform = 'translate(-50%, -50%)';
+                            megaEffect.style.zIndex = '1000';
+                            megaEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                            document.body.appendChild(megaEffect);
+                            
+                            setTimeout(() => {
+                                megaEffect.remove();
+                            }, 2000);
+                        }, 5000);
+                    }
+                    if (gameState.upgrades.goldenClick) {
+                        clearInterval(gameState.goldenClickInterval);
+                        gameState.goldenClickInterval = setInterval(() => {
+                            const goldenValue = 5 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                            const boostedValue = goldenValue * getActiveMultiplier();
+                            gameState.count += boostedValue;
+                            updateCounter();
+                            
+                            const goldenEffect = document.createElement('div');
+                            goldenEffect.textContent = `GOLDEN +${boostedValue}`;
+                            goldenEffect.style.position = 'fixed';
+                            goldenEffect.style.color = 'gold';
+                            goldenEffect.style.fontSize = '2rem';
+                            goldenEffect.style.fontWeight = 'bold';
+                            goldenEffect.style.left = '50%';
+                            goldenEffect.style.top = '30%';
+                            goldenEffect.style.transform = 'translate(-50%, -50%)';
+                            goldenEffect.style.zIndex = '1000';
+                            goldenEffect.style.textShadow = '0 0 10px gold';
+                            goldenEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                            document.body.appendChild(goldenEffect);
+                            
+                            setTimeout(() => {
+                                goldenEffect.remove();
+                            }, 2000);
+                        }, 30000);
+                    }
+                    if (gameState.upgrades.ultimateOrgasm) {
+                        clearInterval(gameState.ultimateOrgasmInterval);
+                        gameState.ultimateOrgasmInterval = setInterval(() => {
+                            const ultimateValue = 50 * gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+                            const boostedValue = ultimateValue * getActiveMultiplier();
+                            gameState.count += boostedValue;
+                            updateCounter();
+                            
+                            const ultimateEffect = document.createElement('div');
+                            ultimateEffect.textContent = `ULTIMATE +${boostedValue}`;
+                            ultimateEffect.style.position = 'fixed';
+                            ultimateEffect.style.color = '#ff00ff';
+                            ultimateEffect.style.fontSize = '3rem';
+                            ultimateEffect.style.fontWeight = 'bold';
+                            ultimateEffect.style.left = '50%';
+                            ultimateEffect.style.top = '20%';
+                            ultimateEffect.style.transform = 'translate(-50%, -50%)';
+                            ultimateEffect.style.zIndex = '1000';
+                            ultimateEffect.style.textShadow = '0 0 20px #ff00ff';
+                            ultimateEffect.style.animation = 'megaFloat 3s ease-out forwards';
+                            document.body.appendChild(ultimateEffect);
+                            
+                            for (let i = 0; i < 100; i++) {
+                                setTimeout(() => {
+                                    const particle = document.createElement('div');
+                                    particle.style.position = 'fixed';
+                                    particle.style.width = '10px';
+                                    particle.style.height = '10px';
+                                    particle.style.borderRadius = '50%';
+                                    particle.style.left = Math.random() * 100 + 'vw';
+                                    particle.style.top = Math.random() * 100 + 'vh';
+                                    particle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                                    particle.style.animation = 'rainbowParticle 2s ease-out forwards';
+                                    document.body.appendChild(particle);
+                                    
+                                    setTimeout(() => {
+                                        particle.remove();
+                                    }, 2000);
+                                }, i * 20);
+                            }
+                            
+                            setTimeout(() => {
+                                ultimateEffect.remove();
+                            }, 3000);
+                        }, 15000);
+                    }
+                    break;
+                case 'click-portal':
+                    clearInterval(gameState.clickPortalInterval);
+                    gameState.clickPortalInterval = setInterval(() => {
+                        const portalValue = Math.floor(Math.random() * 100 + 50) * gameState.clickValue * (gameState.upgrades.doubleClick ? 2 : 1);
+                        const boostedValue = portalValue * getActiveMultiplier();
+                        gameState.count += boostedValue;
+                        updateCounter();
+                        
+                        const portalEffect = document.createElement('div');
+                        portalEffect.textContent = `PORTAL +${boostedValue}`;
+                        portalEffect.style.position = 'fixed';
+                        portalEffect.style.color = '#00ffff';
+                        portalEffect.style.fontSize = '2rem';
+                        portalEffect.style.fontWeight = 'bold';
+                        portalEffect.style.left = '50%';
+                        portalEffect.style.top = '50%';
+                        portalEffect.style.transform = 'translate(-50%, -50%)';
+                        portalEffect.style.zIndex = '1000';
+                        portalEffect.style.textShadow = '0 0 10px #00ffff';
+                        portalEffect.style.animation = 'portalAnim 2s ease-out forwards';
+                        document.body.appendChild(portalEffect);
+                        
+                        setTimeout(() => {
+                            portalEffect.remove();
+                        }, 2000);
+                    }, 15000);
+                    break;
+                case 'quantum-click':
+                    // Efekt jest sprawdzany podczas kliknięcia
+                    break;
+                case 'dark-energy':
+                    // Efekt jest sprawdzany podczas kliknięcia
+                    break;
+                case 'cosmic-boost':
+                    // Podwaja wszystkie efekty ulepszeń
+                    break;
+                case 'infinity-click':
+                    // Efekt jest sprawdzany podczas kliknięcia
+                    break;
+                case 'god-mode':
+                    // Efekt jest sprawdzany podczas kliknięcia
+                    break;
+                case 'lucky-star':
+                    // Zwiększa szansę na krytyka
+                    break;
+                case 'rainbow-trail':
+                    // Dodaje efekt wizualny
+                    document.body.classList.add('rainbow-trail');
+                    break;
+                case 'golden-shower':
+                    clearInterval(gameState.goldenShowerInterval);
+                    gameState.goldenShowerInterval = setInterval(() => {
+                        for (let i = 0; i < 20; i++) {
+                            setTimeout(() => {
+                                const goldenDrop = document.createElement('div');
+                                goldenDrop.style.position = 'fixed';
+                                goldenDrop.style.width = '10px';
+                                goldenDrop.style.height = '20px';
+                                goldenDrop.style.left = Math.random() * 100 + 'vw';
+                                goldenDrop.style.top = '-20px';
+                                goldenDrop.style.backgroundColor = 'gold';
+                                goldenDrop.style.animation = 'goldenDrop 1s linear forwards';
+                                document.body.appendChild(goldenDrop);
+                                
+                                setTimeout(() => {
+                                    goldenDrop.remove();
+                                }, 1000);
+                            }, i * 100);
+                        }
+                    }, 5000);
+                    break;
+                case 'orgasmic-storm':
+
+                    setInterval(() => {
+                        if (Math.random() < 0.3) {
+                            createRandomStorm();
+                        }
+                    }, 10000);
+                    break;
+                case 'divine-touch':
+                    // Efekt jest sprawdzany podczas kliknięcia
+                    break;
+            }
+        }
+
+
+        function autoClick() {
+            const rect = clickBtn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            createSparks(x, y);
+            createClickText(x, y - 30, 'auto!');
+            
+            let add = gameState.clickValue * gameState.clickSpeed * (gameState.upgrades.doubleClick ? 2 : 1);
+            
+
+            const boosterMultiplier = getActiveMultiplier();
+            add *= boosterMultiplier;
+            
+
+            if (gameState.upgrades.darkEnergy) {
+                add += Math.floor(gameState.count * 0.01);
+            }
+            if (gameState.upgrades.infinityClick) {
+                const unlockedAchievements = achievements.filter(a => a.unlocked).length;
+                add += Math.floor(add * unlockedAchievements * 0.001);
+            }
+            if (gameState.upgrades.godMode) {
+                add *= 10;
+            }
+            if (gameState.upgrades.cosmicBoost) {
+                add *= 2;
+            }
+            
+            gameState.count += add;
+            gameState.totalAutoClicks++;
+            updateCounter();
+            
+
+            if (gameState.totalAutoClicks <= 100000) {
+                updateAchievement('auto-clicker', add);
+                updateAchievement('auto-master', add);
+            }
+            
+            clickBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                clickBtn.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+
+        function createRandomStorm() {
+            const stormType = Math.floor(Math.random() * 3);
+            const stormCount = 50 + Math.floor(Math.random() * 50);
+            
+            for (let i = 0; i < stormCount; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'fixed';
+                    particle.style.width = '10px';
+                    particle.style.height = '10px';
+                    particle.style.borderRadius = '50%';
+                    particle.style.left = Math.random() * 100 + 'vw';
+                    particle.style.top = Math.random() * 100 + 'vh';
+                    
+                    if (stormType === 0) {
+                        particle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                        particle.style.animation = 'rainbowParticle 2s ease-out forwards';
+                    } else if (stormType === 1) {
+                        particle.style.backgroundColor = 'gold';
+                        particle.style.animation = 'goldenParticle 2s ease-out forwards';
+                    } else {
+                        particle.style.backgroundColor = '#ff00ff';
+                        particle.style.animation = 'purpleParticle 2s ease-out forwards';
+                    }
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 2000);
+                }, i * 20);
+            }
+            
+
+            if (stormType === 0) {
+                const bonus = 100 * gameState.clickValue * getActiveMultiplier();
+                gameState.count += bonus;
+                updateCounter();
+            }
+        }
+
+
+        function initAchievements() {
+            achievementsGrid.innerHTML = '';
+            achievements.forEach(achievement => {
+                const unlocked = gameState.unlockedAchievements.includes(achievement.id);
+                achievement.unlocked = unlocked;
+                if (unlocked) {
+                    achievement.current = achievement.goal;
+                }
+                
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement ${unlocked ? '' : 'locked'}`;
+                achievementElement.id = `achievement-${achievement.id}`;
+                achievementElement.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${achievement.name}</div>
+                        <div class="achievement-desc">${achievement.description}</div>
+                        ${achievement.goal > 1 ? `
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-bar" style="width: ${(achievement.current / achievement.goal) * 100}%"></div>
+                        </div>
+                        ` : ''}
+                        <div class="achievement-reward">Nagroda: ${achievement.reward}</div>
+                    </div>
+                `;
+                achievementsGrid.appendChild(achievementElement);
+            });
+            updateAchievementsCount();
+        }
+
+
+        function initInventory() {
+            inventoryGrid.innerHTML = '';
+            inventoryItems.forEach(item => {
+                item.count = gameState.inventory[item.id] || 0;
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.id = `item-${item.id}`;
+                itemElement.innerHTML = `
+                    <div class="inventory-item-icon">${item.icon}</div>
+                    <div class="inventory-item-name">${item.name}</div>
+                    <div class="inventory-item-desc">${item.description}</div>
+                    <div class="inventory-item-count">Posiadane: ${item.count}</div>
+                    <button class="use-btn" id="use-${item.id}" ${item.count === 0 ? 'disabled' : ''}>Użyj</button>
+                `;
+                inventoryGrid.appendChild(itemElement);
+                
+
+                document.getElementById(`use-${item.id}`).addEventListener('click', () => {
+                    useItem(item.id);
+                });
+            });
+        }
+
+
+        function initCursors() {
+            cursorsGrid.innerHTML = '';
+            cursors.forEach(cursor => {
+                const unlocked = gameState.unlockedCursors.includes(cursor.id);
+                cursor.unlocked = unlocked;
+                
+                const cursorElement = document.createElement('div');
+                cursorElement.className = `inventory-item cursor-item ${unlocked ? '' : 'locked'} ${gameState.currentCursor === cursor.id ? 'selected' : ''}`;
+                cursorElement.id = `cursor-${cursor.id}`;
+                cursorElement.innerHTML = `
+                    <div class="inventory-item-icon">${cursor.icon}</div>
+                    <div class="inventory-item-name">${cursor.name}</div>
+                    <div class="inventory-item-desc">${cursor.description}</div>
+                    <div class="cursor-preview" style="cursor: ${cursor.css}"></div>
+                    ${unlocked ? `
+                        <button class="use-btn" id="select-${cursor.id}" ${gameState.currentCursor === cursor.id ? 'disabled' : ''}>
+                            ${gameState.currentCursor === cursor.id ? 'Wybrany' : 'Wybierz'}
+                        </button>
+                    ` : `
+                        <div class="inventory-item-count">Odblokuj osiągnięciem</div>
+                    `}
+                `;
+                cursorsGrid.appendChild(cursorElement);
+                
+                if (unlocked) {
+                    document.getElementById(`select-${cursor.id}`).addEventListener('click', () => {
+                        selectCursor(cursor.id);
+                    });
+                }
+            });
+        }
+
+
+        function selectCursor(cursorId) {
+            const cursor = cursors.find(c => c.id === cursorId);
+            if (!cursor || !cursor.unlocked) return;
+            
+            gameState.currentCursor = cursorId;
+            document.body.style.cursor = cursor.css;
+            initCursors(); // Odśwież widok kursorów
+            
+
+            const cursorEffect = document.createElement('div');
+            cursorEffect.textContent = `Wybrano kursor: ${cursor.name}`;
+            cursorEffect.style.position = 'fixed';
+            cursorEffect.style.color = '#6a1b9a';
+            cursorEffect.style.fontSize = '1.2rem';
+            cursorEffect.style.left = '50%';
+            cursorEffect.style.top = '10%';
+            cursorEffect.style.transform = 'translate(-50%, -50%)';
+            cursorEffect.style.zIndex = '1000';
+            cursorEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(cursorEffect);
+            
+            setTimeout(() => {
+                cursorEffect.remove();
+            }, 2000);
+        }
+
+
+        function unlockCursor(cursorId) {
+            if (!gameState.unlockedCursors.includes(cursorId)) {
+                gameState.unlockedCursors.push(cursorId);
+                
+                const cursor = cursors.find(c => c.id === cursorId);
+                if (cursor) {
+                    cursor.unlocked = true;
+                    
+
+                    const unlockEffect = document.createElement('div');
+                    unlockEffect.textContent = `Odblokowano kursor: ${cursor.name}`;
+                    unlockEffect.style.position = 'fixed';
+                    unlockEffect.style.color = '#ffab00';
+                    unlockEffect.style.fontSize = '1.5rem';
+                    unlockEffect.style.left = '50%';
+                    unlockEffect.style.top = '15%';
+                    unlockEffect.style.transform = 'translate(-50%, -50%)';
+                    unlockEffect.style.zIndex = '1000';
+                    unlockEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                    document.body.appendChild(unlockEffect);
+                    
+                    setTimeout(() => {
+                        unlockEffect.remove();
+                    }, 2000);
+                    
+
+                    initCursors();
+                }
+            }
+        }
+
+
+        function useItem(itemId) {
+            const item = inventoryItems.find(i => i.id === itemId);
+            if (!item || item.count === 0) return;
+            
+            item.count--;
+            gameState.inventory[itemId] = item.count;
+            updateInventoryItem(itemId);
+            
+
+            activateBooster(item);
+            
+
+            updateAchievement('booster-user');
+            updateAchievement('booster-master');
+            
+
+            const boosterEffect = document.createElement('div');
+            boosterEffect.textContent = `${item.name} AKTYWNY!`;
+            boosterEffect.style.position = 'fixed';
+            boosterEffect.style.color = '#2196f3';
+            boosterEffect.style.fontSize = '1.5rem';
+            boosterEffect.style.fontWeight = 'bold';
+            boosterEffect.style.left = '50%';
+            boosterEffect.style.top = '20%';
+            boosterEffect.style.transform = 'translate(-50%, -50%)';
+            boosterEffect.style.zIndex = '1000';
+            boosterEffect.style.textShadow = '0 0 10px #2196f3';
+            boosterEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(boosterEffect);
+            
+            setTimeout(() => {
+                boosterEffect.remove();
+            }, 2000);
+        }
+
+
+        function activateBooster(item) {
+
+            const existingBooster = gameState.activeBoosters.find(b => b.id === item.id);
+            if (existingBooster) {
+                clearTimeout(existingBooster.timeout);
+            }
+            
+
+            const booster = {
+                id: item.id,
+                multiplier: item.multiplier,
+                effect: item.effect,
+                endTime: Date.now() + item.duration * 1000
+            };
+            
+            gameState.activeBoosters.push(booster);
+            
+
+            booster.timeout = setTimeout(() => {
+                deactivateBooster(item.id);
+            }, item.duration * 1000);
+            
+
+            clickBtn.classList.add('booster-active');
+        }
+
+
+        function deactivateBooster(itemId) {
+            gameState.activeBoosters = gameState.activeBoosters.filter(b => b.id !== itemId);
+            
+
+            if (gameState.activeBoosters.length === 0) {
+                clickBtn.classList.remove('booster-active');
+            }
+            
+
+            const item = inventoryItems.find(i => i.id === itemId);
+            if (item) {
+                const boosterEndEffect = document.createElement('div');
+                boosterEndEffect.textContent = `${item.name} wygasł`;
+                boosterEndEffect.style.position = 'fixed';
+                boosterEndEffect.style.color = '#888';
+                boosterEndEffect.style.fontSize = '1.2rem';
+                boosterEndEffect.style.left = '50%';
+                boosterEndEffect.style.top = '25%';
+                boosterEndEffect.style.transform = 'translate(-50%, -50%)';
+                boosterEndEffect.style.zIndex = '1000';
+                boosterEndEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                document.body.appendChild(boosterEndEffect);
+                
+                setTimeout(() => {
+                    boosterEndEffect.remove();
+                }, 2000);
+            }
+        }
+
+
+        function updateInventoryItem(itemId) {
+            const item = inventoryItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            const itemElement = document.getElementById(`item-${itemId}`);
+            if (itemElement) {
+                const countElement = itemElement.querySelector('.inventory-item-count');
+                const useButton = itemElement.querySelector('.use-btn');
+                
+                if (countElement) countElement.textContent = `Posiadane: ${item.count}`;
+                if (useButton) useButton.disabled = item.count === 0;
+            }
+        }
+
+
+        function addToInventory(itemId, amount = 1) {
+            const item = inventoryItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            item.count += amount;
+            gameState.inventory[itemId] = item.count;
+            updateInventoryItem(itemId);
+            
+
+            updateAchievement('inventory-collector', amount);
+            updateAchievement('inventory-hoarder', amount);
+        }
+
+
+        function updateAchievement(achievementId, amount = 1) {
+            const achievement = achievements.find(a => a.id === achievementId);
+            if (!achievement || achievement.unlocked) return;
+
+            achievement.current += amount;
+            
+
+            if (achievement.current > achievement.goal) {
+                achievement.current = achievement.goal;
+            }
+
+
+            const achievementElement = document.getElementById(`achievement-${achievementId}`);
+            if (achievementElement) {
+                const progressBar = achievementElement.querySelector('.achievement-progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${(achievement.current / achievement.goal) * 100}%`;
+                }
+            }
+
+
+            if (achievement.current >= achievement.goal && !achievement.unlocked) {
+                unlockAchievement(achievement);
+            }
+        }
+
+
+        function unlockAchievement(achievement) {
+            achievement.unlocked = true;
+            if (!gameState.unlockedAchievements.includes(achievement.id)) {
+                gameState.unlockedAchievements.push(achievement.id);
+            }
+            
+
+            const achievementElement = document.getElementById(`achievement-${achievement.id}`);
+            if (achievementElement) {
+                achievementElement.classList.remove('locked');
+                achievementElement.classList.add('achievement-unlocked');
+                
+                setTimeout(() => {
+                    achievementElement.classList.remove('achievement-unlocked');
+                }, 1000);
+            }
+
+
+            showAchievementNotification(achievement);
+
+
+            grantAchievementReward(achievement.id);
+            
+
+            updateAchievementsCount();
+            
+
+            checkCursorUnlocks();
+        }
+
+
+        function checkCursorUnlocks() {
+
+            if (gameState.count >= 1000 && !gameState.unlockedCursors.includes('gold')) {
+                unlockCursor('gold');
+            }
+            
+
+            if (gameState.totalClicks >= 10000 && !gameState.unlockedCursors.includes('rainbow')) {
+                unlockCursor('rainbow');
+            }
+            
+
+            if (gameState.unlockedAchievements.length >= 10 && !gameState.unlockedCursors.includes('magic')) {
+                unlockCursor('magic');
+            }
+            
+
+            if (gameState.count >= 50000 && !gameState.unlockedCursors.includes('sword')) {
+                unlockCursor('sword');
+            }
+            
+
+            if (gameState.unlockedAchievements.length >= 20 && !gameState.unlockedCursors.includes('alien')) {
+                unlockCursor('alien');
+            }
+            
+
+            if (gameState.totalClicks >= 100000 && !gameState.unlockedCursors.includes('heart')) {
+                unlockCursor('heart');
+            }
+            
+
+            if (gameState.count >= 500000 && !gameState.unlockedCursors.includes('dragon')) {
+                unlockCursor('dragon');
+            }
+            
+
+            const allUpgradesBought = Object.values(gameState.upgrades).every(val => val);
+            if (allUpgradesBought && !gameState.unlockedCursors.includes('poldke')) {
+                unlockCursor('poldke');
+            }
+            
+
+            if (gameState.unlockedAchievements.length >= achievements.length && !gameState.unlockedCursors.includes('infinity')) {
+                unlockCursor('infinity');
+            }
+            
+
+            updateAchievement('cursor-collector', 0);
+        }
+
+
+        function showAchievementNotification(achievement) {
+            notificationTitle.textContent = achievement.name;
+            notificationDesc.textContent = achievement.description;
+            
+            achievementNotification.classList.add('show');
+            
+            setTimeout(() => {
+                achievementNotification.classList.remove('show');
+            }, 5000);
+        }
+
+
+        function grantAchievementReward(achievementId) {
+            switch (achievementId) {
+                case 'first-click':
+                    gameState.count += 10;
+                    break;
+                case 'clicker-novice':
+                    gameState.count += 50;
+                    addToInventory('booster-2x', 1);
+                    break;
+                case 'clicker-pro':
+                    gameState.count += 200;
+                    addToInventory('booster-2x', 2);
+                    break;
+                case 'clicker-master':
+                    gameState.count += 1000;
+                    addToInventory('booster-3x', 1);
+                    break;
+                case 'clicker-god':
+                    gameState.count += 5000;
+                    addToInventory('booster-3x', 3);
+                    addToInventory('lucky-charm', 2);
+                    break;
+                case 'clicker-legend':
+                    gameState.count += 50000;
+                    addToInventory('booster-5x', 5);
+                    addToInventory('infinity-stone', 1);
+                    break;
+                case 'fast-clicker':
+                    gameState.count += 100;
+                    break;
+                case 'addicted':
+                    gameState.count += 500;
+                    addToInventory('booster-2x', 1);
+                    break;
+                case 'click-maniac':
+                    gameState.count += 2000;
+                    addToInventory('booster-3x', 1);
+                    break;
+                case 'click-legend':
+                    gameState.count += 5000;
+                    addToInventory('booster-3x', 2);
+                    addToInventory('time-booster', 1);
+                    break;
+                case 'click-addict':
+                    gameState.count += 10000;
+                    addToInventory('booster-5x', 3);
+                    addToInventory('quantum-boost', 2);
+                    break;
+                case 'upgrade-king':
+                    gameState.count += 2000;
+                    addToInventory('booster-3x', 2);
+                    break;
+                case 'upgrade-god':
+                    gameState.count += 20000;
+                    addToInventory('booster-10x', 5);
+                    addToInventory('infinity-stone', 3);
+                    break;
+                case 'auto-clicker':
+                    // Zwiększ efektywność auto-clickera
+                    gameState.clickValue *= 2;
+                    break;
+                case 'auto-master':
+                    // Zwiększ efektywność auto-clickera
+                    gameState.clickValue *= 5;
+                    break;
+                case 'combo-master':
+                    gameState.count += 300;
+                    addToInventory('lucky-charm', 1);
+                    break;
+                case 'combo-god':
+                    gameState.count += 5000;
+                    addToInventory('combo-extender', 3);
+                    break;
+                case 'critical-hit':
+                    // Zwiększ szansę na krytyczne trafienie (z 15% do 20%)
+                    // Ta funkcjonalność wymagałaby dodatkowej logiki
+                    break;
+                case 'critical-master':
+                    // Zwiększ szansę na krytyczne trafienie (z 20% do 30%)
+                    // Ta funkcjonalność wymagałaby dodatkowej logiki
+                    break;
+                case 'time-spent-1':
+                    gameState.count += 1000;
+                    addToInventory('time-booster', 2);
+                    break;
+                case 'time-spent-5':
+                    gameState.count += 5000;
+                    addToInventory('booster-3x', 3);
+                    addToInventory('time-booster', 3);
+                    break;
+                case 'time-spent-10':
+                    gameState.count += 10000;
+                    addToInventory('booster-5x', 2);
+                    addToInventory('golden-rain', 1);
+                    break;
+                case 'time-spent-24':
+                    gameState.count += 50000;
+                    addToInventory('booster-10x', 5);
+                    addToInventory('infinity-stone', 1);
+                    break;
+                case 'booster-user':
+                    addToInventory('booster-2x', 5);
+                    break;
+                case 'booster-master':
+                    addToInventory('booster-3x', 10);
+                    break;
+                case 'inventory-collector':
+
+                    for (let i = 0; i < 5; i++) {
+                        const randomItem = inventoryItems[Math.floor(Math.random() * inventoryItems.length)];
+                        addToInventory(randomItem.id, 1);
+                    }
+                    break;
+                case 'inventory-hoarder':
+
+                    for (let i = 0; i < 20; i++) {
+                        const randomItem = inventoryItems[Math.floor(Math.random() * inventoryItems.length)];
+                        addToInventory(randomItem.id, 1);
+                    }
+                    break;
+                case 'cursor-collector':
+
+                    unlockCursor('poldke');
+                    break;
+                case 'perfect-game':
+                    // Nieskończone tapki - ustaw bardzo wysoki mnożnik
+                    gameState.clickValue *= 1000;
+                    break;
+            }
+            updateCounter();
+        }
+
+
+        function updateAchievementsCount() {
+            const unlocked = gameState.unlockedAchievements.length;
+            const total = achievements.length;
+            achievementsCountElement.textContent = `${unlocked}/${total}`;
+            
+
+            if (unlocked >= total) {
+                updateAchievement('perfect-game');
+            }
+        }
+
+
+        function checkCountAchievements() {
+            updateAchievement('clicker-novice', 0); // Aktualizuje postęp
+            updateAchievement('clicker-pro', 0);
+            updateAchievement('clicker-master', 0);
+            updateAchievement('clicker-god', 0);
+            updateAchievement('clicker-legend', 0);
+        }
+
+
+        function checkTimeAchievements() {
+            updateAchievement('time-spent-1', 0);
+            updateAchievement('time-spent-5', 0);
+            updateAchievement('time-spent-10', 0);
+            updateAchievement('time-spent-24', 0);
+        }
+
+
+        function checkUpgradeAchievements() {
+            let boughtUpgrades = 0;
+            Object.values(gameState.upgrades).forEach(val => {
+                if (val) boughtUpgrades++;
+            });
+            
+            const upgradeAchievement = achievements.find(a => a.id === 'upgrade-king');
+            if (upgradeAchievement && !upgradeAchievement.unlocked) {
+                upgradeAchievement.current = boughtUpgrades;
+                updateAchievement('upgrade-king', 0);
+            }
+            
+            const upgradeGodAchievement = achievements.find(a => a.id === 'upgrade-god');
+            if (upgradeGodAchievement && !upgradeGodAchievement.unlocked) {
+                upgradeGodAchievement.current = boughtUpgrades;
+                updateAchievement('upgrade-god', 0);
+            }
+        }
+
+
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+
+        function updatePlayTime() {
+            gameState.playTime++;
+            playTimeElement.textContent = formatTime(gameState.playTime);
+            
+
+            achievements.find(a => a.id === 'time-spent-1').current = gameState.playTime;
+            achievements.find(a => a.id === 'time-spent-5').current = gameState.playTime;
+            achievements.find(a => a.id === 'time-spent-10').current = gameState.playTime;
+            achievements.find(a => a.id === 'time-spent-24').current = gameState.playTime;
+            checkTimeAchievements();
+        }
+
+
+        function getActiveMultiplier() {
+            let multiplier = 1;
+            gameState.activeBoosters.forEach(booster => {
+                if (booster.multiplier) {
+                    multiplier *= booster.multiplier;
+                }
+            });
+            return multiplier;
+        }
+
+        function updateCounter() {
+            counterElement.textContent = gameState.count;
+            counterElement.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                counterElement.style.transform = 'scale(1)';
+            }, 100);
+            
+
+            checkCountAchievements();
+            
+
+            initUpgrades();
+        }
+        
+        function createSparks(x, y) {
+            const sparkCount = 15 + Math.floor(Math.random() * 10);
+            
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'click-spark';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 20 + Math.random() * 50;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                spark.style.setProperty('--tx', tx + 'px');
+                spark.style.setProperty('--ty', ty + 'px');
+                spark.style.left = x + 'px';
+                spark.style.top = y + 'px';
+                
+                const size = 2 + Math.random() * 3;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                
+                spark.style.animationDelay = Math.random() * 0.2 + 's';
+                
+                document.body.appendChild(spark);
+                
+                setTimeout(() => {
+                    spark.remove();
+                }, 1000);
+            }
+        }
+        
+        function createClickText(x, y, text) {
+            const textElement = document.createElement('div');
+            textElement.className = 'click-text';
+            textElement.textContent = text;
+            textElement.style.left = x + 'px';
+            textElement.style.top = y + 'px';
+            
+            const colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            textElement.style.color = randomColor;
+            
+            document.body.appendChild(textElement);
+            
+            setTimeout(() => {
+                textElement.remove();
+            }, 1500);
+        }
+        
+        function generateParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 5 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = `rgba(${Math.floor(Math.random() * 156 + 100)}, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 156 + 100)}, ${Math.random() * 0.5 + 0.1})`;
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                
+                const animationDuration = Math.random() * 20 + 10;
+                particle.style.animation = `float ${animationDuration}s linear infinite`;
+                
+                particles.appendChild(particle);
+            }
+        }
+        
+
+        function saveGame() {
+            const gameStateStr = JSON.stringify(gameState);
+            document.cookie = `clickerGameState=${encodeURIComponent(gameStateStr)}; max-age=${60 * 60 * 24 * 30}; path=/`; // Zapisz na 30 dni
+            
+            const saveEffect = document.createElement('div');
+            saveEffect.textContent = 'Gra zapisana!';
+            saveEffect.style.position = 'fixed';
+            saveEffect.style.color = '#4caf50';
+            saveEffect.style.fontSize = '1.5rem';
+            saveEffect.style.fontWeight = 'bold';
+            saveEffect.style.left = '50%';
+            saveEffect.style.top = '10%';
+            saveEffect.style.transform = 'translate(-50%, -50%)';
+            saveEffect.style.zIndex = '1000';
+            saveEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(saveEffect);
+            
+            setTimeout(() => {
+                saveEffect.remove();
+            }, 2000);
+        }
+        
+
+        function loadGame() {
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'clickerGameState') {
+                    try {
+                        const loadedState = JSON.parse(decodeURIComponent(value));
+                        
+
+                        gameState = {
+                            ...gameState,
+                            ...loadedState,
+                            comboTimeout: null,
+                            autoClickerInterval: null,
+                            megaClickerInterval: null,
+                            goldenClickInterval: null,
+                            ultimateOrgasmInterval: null,
+                            timeWarpInterval: null,
+                            clickPortalInterval: null,
+                            quantumClickInterval: null,
+                            activeBoosters: []
+                        };
+                        
+
+                        for (const upgradeId in gameState.upgrades) {
+                            if (gameState.upgrades[upgradeId]) {
+                                activateUpgrade(upgradeId);
+                            }
+                        }
+                        
+
+                        achievements.forEach(achievement => {
+                            achievement.unlocked = gameState.unlockedAchievements.includes(achievement.id);
+                            if (achievement.unlocked) {
+                                achievement.current = achievement.goal;
+                            }
+                        });
+                        
+
+                        inventoryItems.forEach(item => {
+                            item.count = gameState.inventory[item.id] || 0;
+                        });
+                        
+
+                        cursors.forEach(cursor => {
+                            cursor.unlocked = gameState.unlockedCursors.includes(cursor.id);
+                        });
+                        
+
+                        updateCounter();
+                        initUpgrades();
+                        initAchievements();
+                        initInventory();
+                        initCursors();
+                        totalClicksElement.textContent = gameState.totalClicks;
+                        playTimeElement.textContent = formatTime(gameState.playTime);
+                        
+
+                        document.body.style.cursor = cursors.find(c => c.id === gameState.currentCursor)?.css || 'default';
+                        
+                        const loadEffect = document.createElement('div');
+                        loadEffect.textContent = 'Gra wczytana!';
+                        loadEffect.style.position = 'fixed';
+                        loadEffect.style.color = '#2196f3';
+                        loadEffect.style.fontSize = '1.5rem';
+                        loadEffect.style.fontWeight = 'bold';
+                        loadEffect.style.left = '50%';
+                        loadEffect.style.top = '10%';
+                        loadEffect.style.transform = 'translate(-50%, -50%)';
+                        loadEffect.style.zIndex = '1000';
+                        loadEffect.style.animation = 'megaFloat 2s ease-out forwards';
+                        document.body.appendChild(loadEffect);
+                        
+                        setTimeout(() => {
+                            loadEffect.remove();
+                        }, 2000);
+                        
+                        return;
+                    } catch (e) {
+                        console.error('Błąd podczas wczytywania gry:', e);
+                    }
+                }
+            }
+            
+
+            const noSaveEffect = document.createElement('div');
+            noSaveEffect.textContent = 'Nie znaleziono zapisu gry';
+            noSaveEffect.style.position = 'fixed';
+            noSaveEffect.style.color = '#f44336';
+            noSaveEffect.style.fontSize = '1.5rem';
+            noSaveEffect.style.fontWeight = 'bold';
+            noSaveEffect.style.left = '50%';
+            noSaveEffect.style.top = '10%';
+            noSaveEffect.style.transform = 'translate(-50%, -50%)';
+            noSaveEffect.style.zIndex = '1000';
+            noSaveEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(noSaveEffect);
+            
+            setTimeout(() => {
+                noSaveEffect.remove();
+            }, 2000);
+        }
+        
+
+        function resetGame() {
+            if (!confirm('Czy na pewno chcesz zresetować grę? Utracisz wszystkie postępy!')) return;
+            
+            gameState = {
+                count: 0,
+                clickValue: 1,
+                clickSpeed: 1,
+                upgrades: {
+                    doubleClick: false,
+                    autoClicker: false,
+                    megaClicker: false,
+                    criticalClick: false,
+                    goldenClick: false,
+                    clickCombo: false,
+                    rainbowClick: false,
+                    ultimateOrgasm: false,
+                    timeWarp: false,
+                    clickPortal: false,
+                    quantumClick: false,
+                    darkEnergy: false,
+                    cosmicBoost: false,
+                    infinityClick: false,
+                    godMode: false,
+                    luckyStar: false,
+                    rainbowTrail: false,
+                    goldenShower: false,
+                    orgasmicStorm: false,
+                    divineTouch: false
+                },
+                comboCount: 0,
+                comboTimeout: null,
+                autoClickerInterval: null,
+                megaClickerInterval: null,
+                goldenClickInterval: null,
+                ultimateOrgasmInterval: null,
+                timeWarpInterval: null,
+                clickPortalInterval: null,
+                quantumClickInterval: null,
+                totalClicks: 0,
+                totalAutoClicks: 0,
+                playTime: 0,
+                playTimeInterval: null,
+                activeBoosters: [],
+                unlockedCursors: ['default'],
+                currentCursor: 'default',
+                inventory: {},
+                unlockedAchievements: []
+            };
+            
+            clearInterval(gameState.playTimeInterval);
+            gameState.playTimeInterval = setInterval(updatePlayTime, 1000);
+            
+
+            achievements.forEach(achievement => {
+                achievement.unlocked = false;
+                achievement.current = 0;
+            });
+            
+
+            inventoryItems.forEach(item => {
+                item.count = 0;
+            });
+            
+
+            cursors.forEach(cursor => {
+                cursor.unlocked = cursor.id === 'default';
+            });
+            
+
+            updateCounter();
+            initUpgrades();
+            initAchievements();
+            initInventory();
+            initCursors();
+            totalClicksElement.textContent = '0';
+            playTimeElement.textContent = '00:00:00';
+            document.body.style.cursor = 'default';
+            
+            const resetEffect = document.createElement('div');
+            resetEffect.textContent = 'Gra zresetowana!';
+            resetEffect.style.position = 'fixed';
+            resetEffect.style.color = '#ff9800';
+            resetEffect.style.fontSize = '1.5rem';
+            resetEffect.style.fontWeight = 'bold';
+            resetEffect.style.left = '50%';
+            resetEffect.style.top = '10%';
+            resetEffect.style.transform = 'translate(-50%, -50%)';
+            resetEffect.style.zIndex = '1000';
+            resetEffect.style.animation = 'megaFloat 2s ease-out forwards';
+            document.body.appendChild(resetEffect);
+            
+            setTimeout(() => {
+                resetEffect.remove();
+            }, 2000);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0% {
+                    transform: translateY(0) translateX(0);
+                    opacity: ${Math.random() * 0.5 + 0.1};
+                }
+                50% {
+                    transform: translateY(${Math.random() * 100 - 50}px) translateX(${Math.random() * 100 - 50}px);
+                    opacity: ${Math.random() * 0.8 + 0.2};
+                }
+                100% {
+                    transform: translateY(0) translateX(0);
+                    opacity: ${Math.random() * 0.5 + 0.1};
+                }
+            }
+            
+            @keyframes megaFloat {
+                0% {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(-50%, -150%) scale(1.5);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes rainbowParticle {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(3);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes goldenParticle {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(2) translateY(50px);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes purpleParticle {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(4) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes portalAnim {
+                0% {
+                    transform: translate(-50%, -50%) scale(0.5);
+                    opacity: 0;
+                }
+                50% {
+                    transform: translate(-50%, -50%) scale(1.5);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(-50%, -50%) scale(0.5);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes goldenDrop {
+                0% {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh);
+                    opacity: 0;
+                }
+            }
+            
+            .rainbow-trail {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .rainbow-trail::after {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                background: linear-gradient(45deg, 
+                    red, orange, yellow, green, blue, indigo, violet, 
+                    red, orange, yellow, green, blue, indigo, violet);
+                background-size: 400% 400%;
+                animation: rainbowTrailAnim 3s linear infinite;
+                opacity: 0.1;
+                pointer-events: none;
+                z-index: -1;
+            }
+            
+            @keyframes rainbowTrailAnim {
+                0% {
+                    background-position: 0% 50%;
+                }
+                100% {
+                    background-position: 100% 50%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+
+        function initGame() {
+            generateParticles();
+            initUpgrades();
+            initAchievements();
+            initInventory();
+            initCursors();
+            
+
+            gameState.playTimeInterval = setInterval(updatePlayTime, 1000);
+            
+
+            addToInventory('booster-2x', 1);
+            
+
+            loadGame();
+            
+
+            updateCounter();
+        }
+        
+
+        clickBtn.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            if (gameState.upgrades.rainbowClick || gameState.upgrades.rainbowTrail) {
+                const hue = Math.floor(Math.random() * 360);
+                this.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+                setTimeout(() => {
+                    this.style.backgroundColor = 'var(--primary-color)';
+                }, 200);
+            }
+            
+            createSparks(x, y);
+            
+            const texts = ['moocniej!', 'dochoodze!', 'ahhh!', 'o tak!', 'więcej!'];
+            const randomText = texts[Math.floor(Math.random() * texts.length)];
+            createClickText(x, y - 30, randomText);
+            
+            let add = gameState.clickValue * gameState.clickSpeed;
+            if (gameState.upgrades.doubleClick) add *= 2;
+            
+
+            const boosterMultiplier = getActiveMultiplier();
+            add *= boosterMultiplier;
+            
+
+            if (gameState.upgrades.darkEnergy) {
+                add += Math.floor(gameState.count * 0.01);
+            }
+            if (gameState.upgrades.infinityClick) {
+                const unlockedAchievements = achievements.filter(a => a.unlocked).length;
+                add += Math.floor(add * unlockedAchievements * 0.001);
+            }
+            if (gameState.upgrades.godMode) {
+                add *= 10;
+            }
+            if (gameState.upgrades.cosmicBoost) {
+                add *= 2;
+            }
+            
+            let isCritical = false;
+            let criticalChance = 0.15; // Bazowa szansa 15%
+            
+
+            const criticalBooster = gameState.activeBoosters.find(b => b.effect === 'critical');
+            if (criticalBooster) {
+                criticalChance = 0.3; // Zwiększona szansa 30%
+            }
+            
+
+            if (gameState.upgrades.luckyStar) {
+                criticalChance = 0.25;
+            }
+            
+            if (gameState.upgrades.criticalClick && Math.random() < criticalChance) {
+                add *= 3;
+                createClickText(x, y - 60, 'CRIT! x3');
+                isCritical = true;
+                updateAchievement('critical-hit');
+                updateAchievement('critical-master');
+            }
+            
+
+            if (gameState.upgrades.quantumClick && Math.random() < 0.05) {
+                add *= 10;
+                createClickText(x, y - 90, 'QUANTUM! x10');
+                
+
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.style.position = 'fixed';
+                        particle.style.width = '5px';
+                        particle.style.height = '5px';
+                        particle.style.borderRadius = '50%';
+                        particle.style.left = x + 'px';
+                        particle.style.top = y + 'px';
+                        particle.style.backgroundColor = '#00ffff';
+                        particle.style.animation = 'quantumParticle 1s ease-out forwards';
+                        document.body.appendChild(particle);
+                        
+                        setTimeout(() => {
+                            particle.remove();
+                        }, 1000);
+                    }, i * 50);
+                }
+            }
+            
+
+            if (gameState.upgrades.divineTouch && Math.random() < 0.01) {
+                add *= 100;
+                createClickText(x, y - 120, 'DIVINE! x100');
+                
+
+                const divineEffect = document.createElement('div');
+                divineEffect.style.position = 'fixed';
+                divineEffect.style.width = '200px';
+                divineEffect.style.height = '200px';
+                divineEffect.style.left = x - 100 + 'px';
+                divineEffect.style.top = y - 100 + 'px';
+                divineEffect.style.background = 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)';
+                divineEffect.style.borderRadius = '50%';
+                divineEffect.style.animation = 'divinePulse 1s ease-out forwards';
+                divineEffect.style.zIndex = '999';
+                document.body.appendChild(divineEffect);
+                
+                setTimeout(() => {
+                    divineEffect.remove();
+                }, 1000);
+            }
+            
+            if (gameState.upgrades.clickCombo) {
+                gameState.comboCount++;
+                clearTimeout(gameState.comboTimeout);
+                gameState.comboTimeout = setTimeout(() => {
+                    gameState.comboCount = 0;
+                }, gameState.activeBoosters.some(b => b.effect === 'combo') ? 5000 : 2000);
+                
+                if (gameState.comboCount > 1) {
+                    const comboBonus = Math.min(gameState.comboCount * 0.5, 5);
+                    add *= comboBonus;
+                    createClickText(x, y - (isCritical ? 90 : 60), `COMBO x${comboBonus.toFixed(1)}`);
+                    
+
+                    if (gameState.comboCount > achievements.find(a => a.id === 'combo-master').current) {
+                        updateAchievement('combo-master', 0); // Aktualizuje tylko jeśli nowy rekord
+                    }
+                    if (gameState.comboCount > achievements.find(a => a.id === 'combo-god').current) {
+                        updateAchievement('combo-god', 0); // Aktualizuje tylko jeśli nowy rekord
+                    }
+                }
+            }
+            
+            gameState.count += add;
+            gameState.totalClicks++;
+            totalClicksElement.textContent = gameState.totalClicks;
+            updateCounter();
+            
+
+            updateAchievement('first-click');
+            updateAchievement('fast-clicker');
+            updateAchievement('addicted');
+            updateAchievement('click-maniac');
+            updateAchievement('click-legend');
+            updateAchievement('click-addict');
+            
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 100);
+        });
+        
+
+        resetBtn.addEventListener('click', resetGame);
+        saveBtn.addEventListener('click', saveGame);
+        loadBtn.addEventListener('click', loadGame);
+        
+        clickSpeedSlider.addEventListener('input', function() {
+            gameState.clickSpeed = parseInt(this.value);
+            clickSpeedValue.textContent = gameState.clickSpeed;
+        });
+        
+        mouseSpeedSlider.addEventListener('input', function() {
+            const speed = parseInt(this.value);
+            mouseSpeedValue.textContent = speed;
+            
+            document.body.style.cursor = 'none';
+            setTimeout(() => {
+                document.body.style.cursor = cursors.find(c => c.id === gameState.currentCursor)?.css || 'default';
+            }, 100);
+        });
+        
+
+        initGame();
+    </script>
+</body>
+</html>
